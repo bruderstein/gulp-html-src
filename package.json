@@ -1,0 +1,23 @@
+{
+  "name": "gulp-html-src",
+  "version": "0.0.1",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "mocha"
+  },
+  "author": "Dave Brotherstone",
+  "license": "MIT",
+  "dependencies": {
+    "vinyl": "~0.2.3",
+    "through2": "~0.4.1",
+    "cheerio": "~0.13.1",
+    "extend": "~1.2.1",
+    "q": "~1.0.1"
+  },
+  "devDependencies": {
+    "mocha": "~1.18.2",
+    "chai": "~1.9.1",
+    "gulp-util": "~2.2.14"
+  }
+}
