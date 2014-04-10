@@ -17,6 +17,10 @@ module.exports = function(options) {
 			selector: 'script:not([data-ignore=true], [data-remove=true])',
 			getFileName: function(node) { return node.attr('src'); }
 		},
+		css : {
+			selector: 'link[type="text/css"][rel=stylesheet]:not([data-ignore=true], [data-remove=true])',
+			getFileName: function(node) { return node.attr('href'); }
+		}
 	}
 
 	var selectedPresets = (options && options.presets && presets[options.presets]) ||

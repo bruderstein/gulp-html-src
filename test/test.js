@@ -185,6 +185,109 @@ describe('gulp-html-src', function() {
 			
 		});
 
+		it('should emit a single css for css presets', function(done) {
+			runForInput(
+				'<html>' +
+					'<head>' +
+					'<link rel="stylesheet" type="text/css" href="css/test1.css">' +
+					'</head><body>' + 
+					'<script src="js/test1.js"></script>' +
+					'<script src="js/test2.js" data-remove="true"></script>' +
+					'<script src="js/test3.js"></script>' +
+					'</body>' + 
+					'</html>',
+				{ presets : 'css' },
+				function(dataReceived) { 
+						expect(dataReceived.length).to.equal(1);
+						expect(dataReceived[0].path).to.equal('/test/css/test1.css');
+						expect(dataReceived[0].contents.toString()).to.equal('FAKEFILE:/test/css/test1.css');
+						done();
+				}
+			);
+			
+		});
+
+		it('should emit a multiple css for css presets', function(done) {
+			runForInput(
+				'<html>' +
+					'<head>' +
+					'<link rel="stylesheet" type="text/css" href="css/test1.css">' +
+					'<link rel="stylesheet" type="text/css" href="css/test2.css">' +
+					'</head><body>' + 
+					'<script src="js/test1.js"></script>' +
+					'<script src="js/test2.js" data-remove="true"></script>' +
+					'<script src="js/test3.js"></script>' +
+					'</body>' + 
+					'</html>',
+				{ presets : 'css' },
+				function(dataReceived) { 
+						expect(dataReceived.length).to.equal(2);
+						expect(dataReceived[0].path).to.equal('/test/css/test1.css');
+						expect(dataReceived[0].contents.toString()).to.equal('FAKEFILE:/test/css/test1.css');
+						expect(dataReceived[1].path).to.equal('/test/css/test2.css');
+						expect(dataReceived[1].contents.toString()).to.equal('FAKEFILE:/test/css/test2.css');
+						done();
+				}
+			);
+			
+		});
+
+
+		it('should skip data-remove links for css presets', function(done) {
+			runForInput(
+				'<html>' +
+					'<head>' +
+					'<link rel="stylesheet" type="text/css" href="css/test1.css">' +
+					'<link rel="stylesheet" type="text/css" data-remove="true" href="css/testremove.css">' +
+					'<link rel="stylesheet" type="text/css" href="css/test2.css">' +
+					'</head><body>' + 
+					'<script src="js/test1.js"></script>' +
+					'<script src="js/test2.js" data-remove="true"></script>' +
+					'<script src="js/test3.js"></script>' +
+					'</body>' + 
+					'</html>',
+				{ presets : 'css' },
+				function(dataReceived) { 
+						expect(dataReceived.length).to.equal(2);
+						expect(dataReceived[0].path).to.equal('/test/css/test1.css');
+						expect(dataReceived[0].contents.toString()).to.equal('FAKEFILE:/test/css/test1.css');
+						expect(dataReceived[1].path).to.equal('/test/css/test2.css');
+						expect(dataReceived[1].contents.toString()).to.equal('FAKEFILE:/test/css/test2.css');
+						done();
+				}
+			);
+			
+		});
+
+
+
+		it('should skip data-ignore links for css presets', function(done) {
+			runForInput(
+				'<html>' +
+					'<head>' +
+					'<link rel="stylesheet" type="text/css" href="css/test1.css">' +
+					'<link rel="stylesheet" type="text/css" data-ignore="true" href="css/testremove.css">' +
+					'<link rel="stylesheet" type="text/css" href="css/test2.css">' +
+					'</head><body>' + 
+					'<script src="js/test1.js"></script>' +
+					'<script src="js/test2.js" data-remove="true"></script>' +
+					'<script src="js/test3.js"></script>' +
+					'</body>' + 
+					'</html>',
+				{ presets : 'css' },
+				function(dataReceived) { 
+						expect(dataReceived.length).to.equal(2);
+						expect(dataReceived[0].path).to.equal('/test/css/test1.css');
+						expect(dataReceived[0].contents.toString()).to.equal('FAKEFILE:/test/css/test1.css');
+						expect(dataReceived[1].path).to.equal('/test/css/test2.css');
+						expect(dataReceived[1].contents.toString()).to.equal('FAKEFILE:/test/css/test2.css');
+						done();
+				}
+			);
+			
+		});
+
+
 
 		it('should emit an error event on error opening stream', function(done) {
 			var dataReceived = [];
