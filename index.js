@@ -1,9 +1,10 @@
-var File = require('vinyl'),
+var fs = require('fs'),
+    path = require('path'),
+    url = require('url'),
+	File = require('vinyl'),
     cheerio = require('cheerio'),
     through = require('through2'),
     extend = require('extend'),
-    fs = require('fs'),
-    path = require('path'),
     q = require('q');
 
 module.exports = function(options) {
@@ -34,6 +35,10 @@ module.exports = function(options) {
 		//return file.base + fileName; // path.join(file.base, fileName);
 		return path.join(path.dirname(file.path), fileName);
 	};
+
+	var isRelative = function isRelative(path) {
+		return (url.parse(path).protocol == null);
+	}
 
 	var streamToBuffer = function streamToBuffer(stream) {
 		var buffers = [];
@@ -89,14 +94,16 @@ module.exports = function(options) {
 
 					transformFile(contents, function(err, fileName) {
 
-						if (fileName) {
-							var absoluteFileName = makeAbsoluteFileName(file, fileName);
-							stream.push(new File({
+						if (fileName) { 
+							if (isRelative(fileName)) {
+								var absoluteFileName = makeAbsoluteFileName(file, fileName);
+								stream.push(new File({
 									cwd: file.cwd,
 									base: file.base,
 									path: absoluteFileName,
 									contents: options.createReadStream(absoluteFileName)
 								}));
+							}
 						} else {
 							if (options.includeHtmlInOutput) {
 								stream.push(file);	
@@ -115,23 +122,26 @@ module.exports = function(options) {
 			transformFile(file.contents, function(err, fileName) {
 				var createdStream;
 				if (fileName) {
-					try	{
-						var absoluteFileName = makeAbsoluteFileName(file, fileName);
-						var readPromise = streamToBuffer(options.createReadStream(absoluteFileName))
+
+					if (isRelative(fileName)) {
+						try	{
+							var absoluteFileName = makeAbsoluteFileName(file, fileName);
+							var readPromise = streamToBuffer(options.createReadStream(absoluteFileName))
 							.then(function(contents) {
-							stream.push(new File({
+								stream.push(new File({
 									cwd: file.cwd,
 									base: file.base,
 									path: absoluteFileName,
 									contents: contents
 								}));
-						    }, function(err) {
-						    	stream.emit('error', err);
-						    });
-						bufferReadPromises.push(readPromise);
-					} 
-					catch(err) {
-						stream.emit('error', err);
+							}, function(err) {
+								stream.emit('error', err);
+							});
+							bufferReadPromises.push(readPromise);
+						} 
+						catch(err) {
+							stream.emit('error', err);
+						}
 					}
 					
 				} else {

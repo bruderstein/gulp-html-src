@@ -325,6 +325,27 @@ describe('gulp-html-src', function() {
 		});
 
 
+		it('should skip absolute http:// scripts', function(done) {
+			runForInput(
+				'<html>' +
+					'<body>' + 
+					'<script src="js/test1.js"></script>' +
+					'<script src="js/test2.js"></script>' +
+					'<script src="http://cdn.jquery.com/jquery.min.js"></script>' +
+					'</body>' + 
+					'</html>',
+				{ presets : 'js' },
+				function(dataReceived) { 
+						expect(dataReceived.length).to.equal(2);
+						expect(dataReceived[0].path).to.equal(path.normalize('/test/html/js/test1.js'));
+						expect(dataReceived[1].path).to.equal(path.normalize('/test/html/js/test2.js'));
+						
+						done();
+					});
+
+		})
+
+
 	});
 	
 	
