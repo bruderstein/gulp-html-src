@@ -1,11 +1,12 @@
-var ghtmlsrc = require('../'),
+var path = require('path'),
+    PassThrough = require('stream').PassThrough,
     FakeFile = require('gulp-util').File,
     extend = require('extend'),
     q = require('q'),
-    PassThrough = require('stream').PassThrough;
+	mocha = require('mocha'),
+    expect = require('chai').expect,
+    ghtmlsrc = require('../');
 
-require('mocha');
-var expect = require('chai').expect;
 
 
 describe('gulp-html-src', function() {
@@ -40,7 +41,7 @@ describe('gulp-html-src', function() {
 		});
 
 		stream.write(new FakeFile({
-			path: '/test/test.html',
+			path: '/test/html/test.html',
 			contents: new Buffer('<html></html>')
 		}));
 
@@ -78,7 +79,7 @@ describe('gulp-html-src', function() {
 			stream.write(new FakeFile({
 				cwd: '/',
 				base: '/test/',
-				path: '/test/test.html',
+				path: '/test/html/test.html',
 				contents: new Buffer(html)
 			}));
 
@@ -94,8 +95,8 @@ describe('gulp-html-src', function() {
 					'</html>',
 					function(dataReceived) {
 						expect(dataReceived.length).to.equal(1);
-						expect(dataReceived[0].path).to.equal('/test/js/test1.js');
-						expect(dataReceived[0].contents.toString()).to.equal('FAKEFILE:/test/js/test1.js');
+						expect(dataReceived[0].path).to.equal(path.normalize('/test/html/js/test1.js'));
+						expect(dataReceived[0].contents.toString()).to.equal('FAKEFILE:' + path.normalize('/test/html/js/test1.js'));
 						done();
 					}
 			);
@@ -114,12 +115,12 @@ describe('gulp-html-src', function() {
 				'</html>',
 				function(dataReceived) { 
 					expect(dataReceived.length).to.equal(3);
-					expect(dataReceived[0].path).to.equal('/test/js/test1.js');
-					expect(dataReceived[0].contents.toString()).to.equal('FAKEFILE:/test/js/test1.js');
-					expect(dataReceived[1].path).to.equal('/test/js/test2.js');
-					expect(dataReceived[1].contents.toString()).to.equal('FAKEFILE:/test/js/test2.js');
-					expect(dataReceived[2].path).to.equal('/test/js/test3.js');
-					expect(dataReceived[2].contents.toString()).to.equal('FAKEFILE:/test/js/test3.js');
+					expect(dataReceived[0].path).to.equal(path.normalize('/test/html/js/test1.js'));
+					expect(dataReceived[0].contents.toString()).to.equal('FAKEFILE:' + path.normalize('/test/html/js/test1.js'));
+					expect(dataReceived[1].path).to.equal(path.normalize('/test/html/js/test2.js'));
+					expect(dataReceived[1].contents.toString()).to.equal('FAKEFILE:' + path.normalize('/test/html/js/test2.js'));
+					expect(dataReceived[2].path).to.equal(path.normalize('/test/html/js/test3.js'));
+					expect(dataReceived[2].contents.toString()).to.equal('FAKEFILE:' + path.normalize('/test/html/js/test3.js'));
 					done();
 				});
 
@@ -135,10 +136,10 @@ describe('gulp-html-src', function() {
 				'</html>',
 				function(dataReceived) { 
 					expect(dataReceived.length).to.equal(2);
-					expect(dataReceived[0].path).to.equal('/test/js/test1.js');
-					expect(dataReceived[0].contents.toString()).to.equal('FAKEFILE:/test/js/test1.js');
-					expect(dataReceived[1].path).to.equal('/test/js/test3.js');
-					expect(dataReceived[1].contents.toString()).to.equal('FAKEFILE:/test/js/test3.js');
+					expect(dataReceived[0].path).to.equal(path.normalize('/test/html/js/test1.js'));
+					expect(dataReceived[0].contents.toString()).to.equal('FAKEFILE:' + path.normalize('/test/html/js/test1.js'));
+					expect(dataReceived[1].path).to.equal(path.normalize('/test/html/js/test3.js'));
+					expect(dataReceived[1].contents.toString()).to.equal('FAKEFILE:' + path.normalize('/test/html/js/test3.js'));
 					done();
 				});
 
@@ -154,10 +155,10 @@ describe('gulp-html-src', function() {
 					'</html>',
 				function(dataReceived) { 
 					expect(dataReceived.length).to.equal(2);
-					expect(dataReceived[0].path).to.equal('/test/js/test1.js');
-					expect(dataReceived[0].contents.toString()).to.equal('FAKEFILE:/test/js/test1.js');
-					expect(dataReceived[1].path).to.equal('/test/js/test3.js');
-					expect(dataReceived[1].contents.toString()).to.equal('FAKEFILE:/test/js/test3.js');
+					expect(dataReceived[0].path).to.equal(path.normalize('/test/html/js/test1.js'));
+					expect(dataReceived[0].contents.toString()).to.equal('FAKEFILE:' + path.normalize('/test/html/js/test1.js'));
+					expect(dataReceived[1].path).to.equal(path.normalize('/test/html/js/test3.js'));
+					expect(dataReceived[1].contents.toString()).to.equal('FAKEFILE:' + path.normalize('/test/html/js/test3.js'));
 					done();
 				});
 
@@ -174,11 +175,11 @@ describe('gulp-html-src', function() {
 				{ includeHtmlInOutput : true },
 				function(dataReceived) { 
 						expect(dataReceived.length).to.equal(3);
-						expect(dataReceived[0].path).to.equal('/test/js/test1.js');
-						expect(dataReceived[0].contents.toString()).to.equal('FAKEFILE:/test/js/test1.js');
-						expect(dataReceived[1].path).to.equal('/test/js/test3.js');
-						expect(dataReceived[1].contents.toString()).to.equal('FAKEFILE:/test/js/test3.js');
-						expect(dataReceived[2].path).to.equal('/test/test.html');
+						expect(dataReceived[0].path).to.equal(path.normalize('/test/html/js/test1.js'));
+						expect(dataReceived[0].contents.toString()).to.equal('FAKEFILE:' + path.normalize('/test/html/js/test1.js'));
+						expect(dataReceived[1].path).to.equal(path.normalize('/test/html/js/test3.js'));
+						expect(dataReceived[1].contents.toString()).to.equal('FAKEFILE:' + path.normalize('/test/html/js/test3.js'));
+						expect(dataReceived[2].path).to.equal('/test/html/test.html');
 						done();
 				}
 			);
@@ -199,8 +200,8 @@ describe('gulp-html-src', function() {
 				{ presets : 'css' },
 				function(dataReceived) { 
 						expect(dataReceived.length).to.equal(1);
-						expect(dataReceived[0].path).to.equal('/test/css/test1.css');
-						expect(dataReceived[0].contents.toString()).to.equal('FAKEFILE:/test/css/test1.css');
+						expect(dataReceived[0].path).to.equal(path.normalize('/test/html/css/test1.css'));
+						expect(dataReceived[0].contents.toString()).to.equal('FAKEFILE:' + path.normalize('/test/html/css/test1.css'));
 						done();
 				}
 			);
@@ -222,10 +223,10 @@ describe('gulp-html-src', function() {
 				{ presets : 'css' },
 				function(dataReceived) { 
 						expect(dataReceived.length).to.equal(2);
-						expect(dataReceived[0].path).to.equal('/test/css/test1.css');
-						expect(dataReceived[0].contents.toString()).to.equal('FAKEFILE:/test/css/test1.css');
-						expect(dataReceived[1].path).to.equal('/test/css/test2.css');
-						expect(dataReceived[1].contents.toString()).to.equal('FAKEFILE:/test/css/test2.css');
+						expect(dataReceived[0].path).to.equal(path.normalize('/test/html/css/test1.css'));
+						expect(dataReceived[0].contents.toString()).to.equal('FAKEFILE:' + path.normalize('/test/html/css/test1.css'));
+						expect(dataReceived[1].path).to.equal(path.normalize('/test/html/css/test2.css'));
+						expect(dataReceived[1].contents.toString()).to.equal('FAKEFILE:' + path.normalize('/test/html/css/test2.css'));
 						done();
 				}
 			);
@@ -249,10 +250,10 @@ describe('gulp-html-src', function() {
 				{ presets : 'css' },
 				function(dataReceived) { 
 						expect(dataReceived.length).to.equal(2);
-						expect(dataReceived[0].path).to.equal('/test/css/test1.css');
-						expect(dataReceived[0].contents.toString()).to.equal('FAKEFILE:/test/css/test1.css');
-						expect(dataReceived[1].path).to.equal('/test/css/test2.css');
-						expect(dataReceived[1].contents.toString()).to.equal('FAKEFILE:/test/css/test2.css');
+						expect(dataReceived[0].path).to.equal(path.normalize('/test/html/css/test1.css'));
+						expect(dataReceived[0].contents.toString()).to.equal('FAKEFILE:' + path.normalize('/test/html/css/test1.css'));
+						expect(dataReceived[1].path).to.equal(path.normalize('/test/html/css/test2.css'));
+						expect(dataReceived[1].contents.toString()).to.equal('FAKEFILE:' + path.normalize('/test/html/css/test2.css'));
 						done();
 				}
 			);
@@ -277,10 +278,10 @@ describe('gulp-html-src', function() {
 				{ presets : 'css' },
 				function(dataReceived) { 
 						expect(dataReceived.length).to.equal(2);
-						expect(dataReceived[0].path).to.equal('/test/css/test1.css');
-						expect(dataReceived[0].contents.toString()).to.equal('FAKEFILE:/test/css/test1.css');
-						expect(dataReceived[1].path).to.equal('/test/css/test2.css');
-						expect(dataReceived[1].contents.toString()).to.equal('FAKEFILE:/test/css/test2.css');
+						expect(dataReceived[0].path).to.equal(path.normalize('/test/html/css/test1.css'));
+						expect(dataReceived[0].contents.toString()).to.equal('FAKEFILE:' + path.normalize('/test/html/css/test1.css'));
+						expect(dataReceived[1].path).to.equal(path.normalize('/test/html/css/test2.css'));
+						expect(dataReceived[1].contents.toString()).to.equal('FAKEFILE:' + path.normalize('/test/html/css/test2.css'));
 						done();
 				}
 			);
@@ -314,7 +315,7 @@ describe('gulp-html-src', function() {
 			stream.write(new FakeFile({
 				cwd: '/',
 				base: '/test/',
-				path: '/test/test.html',
+				path: '/test/html/test.html',
 				contents: new Buffer('<html><body><script src="js/notfound.js"></script></body></html>')
 			}));
 
@@ -322,6 +323,7 @@ describe('gulp-html-src', function() {
 			stream.end();
 	
 		});
+
 
 	});
 	
@@ -364,7 +366,7 @@ describe('gulp-html-src', function() {
 			stream.write(new FakeFile({
 				cwd: '/',
 				base: '/test/',
-				path: '/test/test.html',
+				path: '/test/html/test.html',
 				contents: createHtmlStream(html)
 			}));
 
@@ -405,9 +407,9 @@ describe('gulp-html-src', function() {
 				expect(dataReceived[0].contents).to.be.an.instanceOf(PassThrough);
 				readStream(dataReceived[0].contents)
 					.then(function(contents) {
-						expect(contents.toString()).to.equal('FAKEFILE:/test/js/test1.js');
+						expect(contents.toString()).to.equal('FAKEFILE:' + path.normalize('/test/html/js/test1.js'));
 					})
-					.then(done);
+					.then(done, done);
 			});
 		});
 
@@ -421,15 +423,15 @@ describe('gulp-html-src', function() {
 				expect(dataReceived[0].contents).to.be.an.instanceOf(PassThrough);
 				readStream(dataReceived[0].contents)
 					.then(function(contents) {
-						expect(contents.toString()).to.equal('FAKEFILE:/test/js/test1.js');
+						expect(contents.toString()).to.equal('FAKEFILE:' + path.normalize('/test/html/js/test1.js'));
 					})
 					.then(function() {
 						return readStream(dataReceived[1].contents);
 					})
 					.then(function(contents) {
-						expect(contents.toString()).to.equal('FAKEFILE:/test/js/test2.js')
+						expect(contents.toString()).to.equal('FAKEFILE:' + path.normalize('/test/html/js/test2.js'))
 					})
-					.then(done);
+					.then(done, done);
 
 				
 			});

@@ -3,6 +3,7 @@ var File = require('vinyl'),
     through = require('through2'),
     extend = require('extend'),
     fs = require('fs'),
+    path = require('path'),
     q = require('q');
 
 module.exports = function(options) {
@@ -29,8 +30,12 @@ module.exports = function(options) {
 	
 	options = extend({}, defaults, selectedPresets, options);
 	
+	var makeAbsoluteFileName = function makeAbsoluteFileName(file, fileName) {
+		//return file.base + fileName; // path.join(file.base, fileName);
+		return path.join(path.dirname(file.path), fileName);
+	};
 
-	var streamToBuffer = function(stream) {
+	var streamToBuffer = function streamToBuffer(stream) {
 		var buffers = [];
 		var deferred = q.defer();
 		var totalLength = 0;
@@ -56,7 +61,7 @@ module.exports = function(options) {
 	// Calls the callback for each matching in the contents, with an error object
 	// and the filename.  callback(err, fileName).
 	// fileName === null signals the end of the matches
-	var transformFile = function(contents, callback) {
+	var transformFile = function transformFile(contents, callback) {
 		var $ = cheerio.load(contents.toString());
 		$(options.selector).each(function() {
 			var element = $(this);
@@ -71,7 +76,7 @@ module.exports = function(options) {
 	var transform = function(file, enc, callback) {
 		var stream = this;
 		var bufferReadPromises = [];
-
+		
 		if (file.isNull()) {
 			// No contents - do nothing
 			stream.push(file);
@@ -83,12 +88,14 @@ module.exports = function(options) {
 				.then(function(contents) {
 
 					transformFile(contents, function(err, fileName) {
+
 						if (fileName) {
+							var absoluteFileName = makeAbsoluteFileName(file, fileName);
 							stream.push(new File({
 									cwd: file.cwd,
 									base: file.base,
-									path: file.base + fileName,
-									contents: options.createReadStream(file.base + fileName)
+									path: absoluteFileName,
+									contents: options.createReadStream(absoluteFileName)
 								}));
 						} else {
 							if (options.includeHtmlInOutput) {
@@ -105,17 +112,17 @@ module.exports = function(options) {
 		}
 
 		if (file.isBuffer()) {
-			
 			transformFile(file.contents, function(err, fileName) {
 				var createdStream;
 				if (fileName) {
 					try	{
-						var readPromise = streamToBuffer(options.createReadStream(file.base + fileName))
+						var absoluteFileName = makeAbsoluteFileName(file, fileName);
+						var readPromise = streamToBuffer(options.createReadStream(absoluteFileName))
 							.then(function(contents) {
 							stream.push(new File({
 									cwd: file.cwd,
 									base: file.base,
-									path: file.base + fileName,
+									path: absoluteFileName,
 									contents: contents
 								}));
 						    }, function(err) {
