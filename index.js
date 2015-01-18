@@ -20,7 +20,7 @@ module.exports = function(options) {
 			getFileName: function(node) { return node.attr('src'); }
 		},
 		css : {
-			selector: 'link[type="text/css"][rel=stylesheet]:not([data-ignore=true], [data-remove=true])',
+			selector: 'link[rel=stylesheet]:not([data-ignore=true], [data-remove=true])',
 			getFileName: function(node) { return node.attr('href'); }
 		}
 	}
