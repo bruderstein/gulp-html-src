@@ -23,7 +23,7 @@ module.exports = function(options) {
 			selector: 'link[rel=stylesheet]:not([data-ignore=true], [data-remove=true])',
 			getFileName: function(node) { return node.attr('href'); }
 		}
-	}
+	};
 
 	var selectedPresets = (options && options.presets && presets[options.presets]) ||
 	                     presets[defaults.presets];
@@ -38,7 +38,7 @@ module.exports = function(options) {
 
 	var isRelative = function isRelative(path) {
 		return (url.parse(path).protocol == null);
-	}
+	};
 
 	var streamToBuffer = function streamToBuffer(stream) {
 		var buffers = [];
@@ -61,26 +61,31 @@ module.exports = function(options) {
 		});
 
 		return deferred.promise;
-	}
+	};
 
-	// Calls the callback for each matching in the contents, with an error object
-	// and the filename.  callback(err, fileName).
-	// fileName === null signals the end of the matches
-	var transformFile = function transformFile(contents, callback) {
-		var $ = cheerio.load(contents.toString());
-		$(options.selector).each(function() {
-			var element = $(this);
-			var fileName = options.getFileName(element);
-			callback(null, fileName);
-		});
+    /**
+     * Returns an array of matched files - empty if no file is found.
+     * @param contents
+     * @returns {Array}
+     */
+    var transformFile = function transformFile(contents) {
+        var $ = cheerio.load(contents.toString());
+        var result = [];
+        $(options.selector).each(function() {
+            var element = $(this);
+            var fileName = options.getFileName(element);
+            result.push(fileName);
+        });
 
-		callback(null, null);
-	}
+        return result;
+    };
 
 
 	var transform = function(file, enc, callback) {
 		var stream = this;
 		var bufferReadPromises = [];
+        var fileNames;
+        var files = [];
 		
 		if (file.isNull()) {
 			// No contents - do nothing
@@ -88,73 +93,80 @@ module.exports = function(options) {
 			callback();
 		}
 
-		if (file.isStream()) {
-			streamToBuffer(file.contents)
-				.then(function(contents) {
+        if (file.isStream()) {
+            streamToBuffer(file.contents)
+                .then(function(contents) {
 
-					transformFile(contents, function(err, fileName) {
+                    // Get all file names from contents of file.
+                    fileNames = transformFile(contents);
 
-						if (fileName) { 
-							if (isRelative(fileName)) {
-								var absoluteFileName = makeAbsoluteFileName(file, fileName);
-								stream.push(new File({
-									cwd: file.cwd,
-									base: file.base,
-									path: absoluteFileName,
-									contents: options.createReadStream(absoluteFileName)
-								}));
-							}
-						} else {
-							if (options.includeHtmlInOutput) {
-								stream.push(file);	
-							}
-							callback();		
-						}
-						
-					});
+                    // Iterate over found file names.
+                    fileNames.forEach(function (fileName) {
+                        if (isRelative(fileName)) {
+                            var absoluteFileName = makeAbsoluteFileName(file, fileName);
+                            stream.push(new File({
+                                cwd: file.cwd,
+                                base: file.base,
+                                path: absoluteFileName,
+                                contents: options.createReadStream(absoluteFileName)
+                            }));
+                        }
+                    });
 
-				}, function(err) {
-					stream.emit('error', err);
-				});
-		}
+                    // Check if we should include HTML file.
+                    if (options.includeHtmlInOutput) {
+                        stream.push(file);
+                    }
 
-		if (file.isBuffer()) {
-			transformFile(file.contents, function(err, fileName) {
-				var createdStream;
-				if (fileName) {
+                    callback();
+                }, function(err) {
+                    stream.emit('error', err);
+                });
+        }
 
-					if (isRelative(fileName)) {
-						try	{
-							var absoluteFileName = makeAbsoluteFileName(file, fileName);
-							var readPromise = streamToBuffer(options.createReadStream(absoluteFileName))
-							.then(function(contents) {
-								stream.push(new File({
-									cwd: file.cwd,
-									base: file.base,
-									path: absoluteFileName,
-									contents: contents
-								}));
-							}, function(err) {
-								stream.emit('error', err);
-							});
-							bufferReadPromises.push(readPromise);
-						} 
-						catch(err) {
-							stream.emit('error', err);
-						}
-					}
-					
-				} else {
-					q.all(bufferReadPromises)
-					 .then(function() {
-						// end of contents, no further matches for this file
-						if (options.includeHtmlInOutput) {
-							stream.push(file);
-						}
-						callback();		
-					});
-				}
-			});
+        if (file.isBuffer()) {
+
+            // Get all file names from contents of file.
+            fileNames = transformFile(file.contents);
+
+            // Iterate over found file names.
+            fileNames.forEach(function (fileName, index) {
+                if (isRelative(fileName)) {
+                    try	{
+                        var absoluteFileName = makeAbsoluteFileName(file, fileName);
+                        var readPromise = streamToBuffer(options.createReadStream(absoluteFileName))
+                            .then(function(contents) {
+                                files[index] = new File({
+                                    cwd: file.cwd,
+                                    base: file.base,
+                                    path: absoluteFileName,
+                                    contents: contents
+                                });
+                            }, function(err) {
+                                stream.emit('error', err);
+                            });
+                        bufferReadPromises.push(readPromise);
+                    }
+                    catch(err) {
+                        stream.emit('error', err);
+                    }
+                }
+            });
+
+            // Wait for all reading to be done.
+            q.all(bufferReadPromises)
+                .then(function() {
+                    // Push all files into the stream in correct order.
+                    files.forEach(function (file) {
+                        stream.push(file);
+                    });
+
+                    // end of contents, no further matches for this file
+                    if (options.includeHtmlInOutput) {
+                        stream.push(file);
+                    }
+                    callback();
+                });
 		}
 	};
 	
