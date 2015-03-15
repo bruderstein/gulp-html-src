@@ -20,7 +20,23 @@ describe('gulp-html-src', function() {
 		return stream;
 	};
 
-
+    /**
+     * Creates fake read stream function with fake delays that will simulate different loading times.
+     * @param {Array} delays Array of delays in milliseconds.
+     * @returns {Function}
+     */
+    var createFakeReadStreamWithDelay = function (delays) {
+        var i = 0;
+        return function(path) {
+            var stream =  new PassThrough();
+            setTimeout(function() {
+                stream.write('FAKEFILE:');
+                stream.write(path);
+                stream.end();
+            }, delays[i++]);
+            return stream;
+        };
+    };
 
 	it('should be a function', function() {
 		expect(ghtmlsrc).to.be.a('function');
@@ -343,8 +359,29 @@ describe('gulp-html-src', function() {
 						done();
 					});
 
-		})
+		});
 
+        it('should return files in same order as they appear in HTML file', function(done) {
+            runForInput(
+                '<html><body>' +
+                '<script src="js/test1.js"></script>' +
+                '<script src="js/test2.js"></script>' +
+                '<script src="js/test3.js"></script>' +
+                '</body>' +
+                '</html>',
+                {createReadStream: createFakeReadStreamWithDelay([500, 100, 0])},
+                function(dataReceived) {
+                    expect(dataReceived.length).to.equal(3);
+                    expect(dataReceived[0].path).to.equal(path.normalize('/test/html/js/test1.js'));
+                    expect(dataReceived[0].contents.toString()).to.equal('FAKEFILE:' + path.normalize('/test/html/js/test1.js'));
+                    expect(dataReceived[1].path).to.equal(path.normalize('/test/html/js/test2.js'));
+                    expect(dataReceived[1].contents.toString()).to.equal('FAKEFILE:' + path.normalize('/test/html/js/test2.js'));
+                    expect(dataReceived[2].path).to.equal(path.normalize('/test/html/js/test3.js'));
+                    expect(dataReceived[2].contents.toString()).to.equal('FAKEFILE:' + path.normalize('/test/html/js/test3.js'));
+                    done();
+                });
+
+        });
 
 	});
 	
