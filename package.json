@@ -1,6 +1,6 @@
 {
   "name": "gulp-html-src",
-  "version": "0.2.0",
+  "version": "1.0.0",
   "description": "Gulp plugin to accept HTML input, and output the linked JavaScript (script tags) and CSS (link tags)",
   "main": "./index.js",
   "repository": "git://github.com/davegb3/gulp-html-src.git",
