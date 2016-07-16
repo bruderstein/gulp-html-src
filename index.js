@@ -104,16 +104,18 @@ module.exports = function(options) {
                     // Iterate over found file names.
                     fileNames.forEach(function (fileName) {
                         if (isRelative(fileName)) {
-														var absoluteFileName;
+														var absoluteFileName, fileBase;
 														if (options.base) {
-															absoluteFileName = path.join(file.cwd, options.base, fileName)
+															absoluteFileName = path.join(file.cwd, options.base, fileName);
+															fileBase = options.base;
 														}
 														else {
-		                         absoluteFileName = makeAbsoluteFileName(file, fileName);
+														 absoluteFileName = makeAbsoluteFileName(file, fileName);
+														 fileBase = file.base;
 														}
                             stream.push(new File({
                                 cwd: file.cwd,
-                                base: file.base,
+                                base: fileBase,
                                 path: absoluteFileName,
                                 contents: options.createReadStream(absoluteFileName)
                             }));
@@ -140,18 +142,20 @@ module.exports = function(options) {
             fileNames.forEach(function (fileName, index) {
                 if (isRelative(fileName)) {
                     try	{
-												var absoluteFileName;
+												var absoluteFileName, fileBase;
 												if (options.base) {
-													absoluteFileName = path.join(file.cwd, options.base, fileName)
+													absoluteFileName = path.join(file.cwd, options.base, fileName);
+													fileBase = options.base;
 												}
 												else {
                          absoluteFileName = makeAbsoluteFileName(file, fileName);
+												 fileBase = file.base;
 												}
                         var readPromise = streamToBuffer(options.createReadStream(absoluteFileName))
                             .then(function(contents) {
                                 files[index] = new File({
                                     cwd: file.cwd,
-                                    base: file.base,
+                                    base: fileBase,
                                     path: absoluteFileName,
                                     contents: contents
                                 });
@@ -182,6 +186,6 @@ module.exports = function(options) {
                 });
 		}
 	};
-	
+
 	return through.obj(transform);
 }
