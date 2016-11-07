@@ -16,7 +16,7 @@ module.exports = function(options) {
 
 	var presets = {
 		script : {
-			selector: 'script:not([data-ignore=true], [data-remove=true])',
+			selector: 'script[src]:not([data-ignore=true], [data-remove=true])',
 			getFileName: function(node) { return node.attr('src'); }
 		},
 		css : {
