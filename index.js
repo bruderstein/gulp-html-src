@@ -1,7 +1,7 @@
 var fs = require('fs'),
     path = require('path'),
     url = require('url'),
-		File = require('vinyl'),
+    File = require('vinyl'),
     cheerio = require('cheerio'),
     through = require('through2'),
     extend = require('extend'),
