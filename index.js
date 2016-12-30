@@ -1,7 +1,7 @@
 var fs = require('fs'),
     path = require('path'),
     url = require('url'),
-	File = require('vinyl'),
+    File = require('vinyl'),
     cheerio = require('cheerio'),
     through = require('through2'),
     extend = require('extend'),
@@ -11,7 +11,8 @@ module.exports = function(options) {
 	var defaults = {
 		presets: 'script',
 		includeHtmlInOutput: false,
-		createReadStream : fs.createReadStream
+		createReadStream : fs.createReadStream,
+		base: null
 	};
 
 	var presets = {
@@ -28,9 +29,9 @@ module.exports = function(options) {
 	var selectedPresets = (options && options.presets && presets[options.presets]) ||
 	                     presets[defaults.presets];
 
-	
+
 	options = extend({}, defaults, selectedPresets, options);
-	
+
 	var makeAbsoluteFileName = function makeAbsoluteFileName(file, fileName) {
 		//return file.base + fileName; // path.join(file.base, fileName);
 		return path.join(path.dirname(file.path), fileName);
@@ -84,9 +85,9 @@ module.exports = function(options) {
 	var transform = function(file, enc, callback) {
 		var stream = this;
 		var bufferReadPromises = [];
-        var fileNames;
-        var files = [];
-		
+    var fileNames;
+    var files = [];
+
 		if (file.isNull()) {
 			// No contents - do nothing
 			stream.push(file);
@@ -103,10 +104,18 @@ module.exports = function(options) {
                     // Iterate over found file names.
                     fileNames.forEach(function (fileName) {
                         if (isRelative(fileName)) {
-                            var absoluteFileName = makeAbsoluteFileName(file, fileName);
+														var absoluteFileName, fileBase;
+														if (options.base) {
+															absoluteFileName = path.join(file.cwd, options.base, fileName);
+															fileBase = options.base;
+														}
+														else {
+														 absoluteFileName = makeAbsoluteFileName(file, fileName);
+														 fileBase = file.base;
+														}
                             stream.push(new File({
                                 cwd: file.cwd,
-                                base: file.base,
+                                base: fileBase,
                                 path: absoluteFileName,
                                 contents: options.createReadStream(absoluteFileName)
                             }));
@@ -133,12 +142,20 @@ module.exports = function(options) {
             fileNames.forEach(function (fileName, index) {
                 if (isRelative(fileName)) {
                     try	{
-                        var absoluteFileName = makeAbsoluteFileName(file, fileName);
+												var absoluteFileName, fileBase;
+												if (options.base) {
+													absoluteFileName = path.join(file.cwd, options.base, fileName);
+													fileBase = options.base;
+												}
+												else {
+                         absoluteFileName = makeAbsoluteFileName(file, fileName);
+												 fileBase = file.base;
+												}
                         var readPromise = streamToBuffer(options.createReadStream(absoluteFileName))
                             .then(function(contents) {
                                 files[index] = new File({
                                     cwd: file.cwd,
-                                    base: file.base,
+                                    base: fileBase,
                                     path: absoluteFileName,
                                     contents: contents
                                 });
@@ -169,6 +186,6 @@ module.exports = function(options) {
                 });
 		}
 	};
-	
+
 	return through.obj(transform);
 }

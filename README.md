@@ -19,7 +19,7 @@ var uglify = require('gulp-uglify');
 gulp.task('copy-js', function() {
 	gulp.src('./src/*.html')
 		.pipe(ghtmlSrc())
-		// From this point, it's as if you'd used gulp.src() listing each of your 
+		// From this point, it's as if you'd used gulp.src() listing each of your
 		// javascript files that are in your html as <script src="..."></script>
 		.pipe(uglify())
 		.pipe(gulp.dest('./build/'));
@@ -55,7 +55,7 @@ It will skip any script or link tags with data-remove="true" or data-ignore="tru
 
     Type: `bool`
     Default: `false`
-	
+
 
 By default the original HTML file (that probably came from gulp.src()) is swallowed by `gulp-html-src`, and it only emits the matching script or css files.  However, if you want to keep the HTML in the stream, then set this option to true.  One use of this could be to blindly copy the HTML and all references to a destination directory.
 
@@ -68,7 +68,7 @@ The following options are not used for the "normal" cases, but could be useful i
 
     Type: `String`
     Default: For presets == `script`, `script:not([data-ignore=true], [data-remove=true])`, for presets == `css`, `link[type="text/css"][rel=stylesheet]:not([data-ignore=true], [data-remove=true])`
- 
+
 
 This is the [cheerio](https://github.com/cheeriojs/cheerio) selector (basically a jQuery selector) for the elements to select.  See `options.getFileName` for how this element is converted to a filename.
 
@@ -86,5 +86,8 @@ function getFileName(node) {
 }
 ```
 
+### options.base
 
+		Type: `String`
 
+If `options.base` is set, the base for the created file is set to match the given `base` rather than the html-file base. This helps when the js and css files are stored in different folders for development and production.
